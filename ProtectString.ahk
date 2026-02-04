@@ -23,6 +23,14 @@ Example Usage:
 
 */
 
+class VersionManager_ProtectString
+{
+    static _ := VersionManager_ProtectString._init()
+    _init()    {
+        global
+        PROTECTSTRING_VERSION := "1.0.0"
+    }
+}
 class ProtectString
 {
     encrypt(plainText
