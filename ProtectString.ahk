@@ -26,7 +26,7 @@ class VersionManager_ProtectString
     static _ := this._init()
     static _init()    {
         global
-        PROTECTSTRING_VERSION := "1.0.0"
+        PROTECTSTRING_VERSION := "1.1.0"
     }
 }
 class ProtectString
@@ -37,7 +37,8 @@ class ProtectString
         ,scope := "CurrentUser" ;  CurrentUser | LocalMachine   (one)
         ,flags := "UiForbidden" ;  UiForbidden + Audit          (space-separated)
         ,enc := "UTF-16"
-        ,dataDescrText := "")
+        ,dataDescrText := ""
+        ,&ok?)
     {
         static CRYPTPROTECT_LOCAL_MACHINE   := 0x4
             ,CRYPTPROTECT_UI_FORBIDDEN      := 0x1
@@ -45,6 +46,9 @@ class ProtectString
             ,CRYPT_STRING_BASE64            := 0x00000001
             ,CRYPT_STRING_HEXRAW            := 0x0000000c
             ,CRYPT_STRING_NOCRLF            := 0x40000000
+
+        if (isSet(ok))
+            ok := false
         ;==============================================================
         ;   CryptProtectData function (dpapi.h)
         ;     https://learn.microsoft.com/en-us/windows/win32/api/dpapi/nf-dpapi-cryptprotectdata
@@ -114,6 +118,8 @@ class ProtectString
                 ,"UInt*",&pcchString
                 ,"Int")
             cipherText := strGet(pszString, pcchString, "UTF-16")
+            if (isSet(ok))
+                ok := true
         }
         if (pbOut)
             dllCall("Kernel32.dll\LocalFree", "Ptr",pbOut + 0, "Ptr")
@@ -126,7 +132,8 @@ class ProtectString
         ,_?
         ,flags := "UiForbidden" ;  UiForbidden + VerifyProtection   (space-separated)
         ,enc := "UTF-16"
-        ,&dataDescrText?)
+        ,&dataDescrText?
+        ,&ok?)
     {
         static CRYPT_STRING_BASE64          := 0x00000001
             ,CRYPT_STRING_HEXRAW            := 0x0000000c
@@ -135,6 +142,8 @@ class ProtectString
             
         if (isSet(dataDescrText))
             dataDescrText := "", ppszDataDescr := 0
+        if (isSet(ok))
+            ok := false
         ;==============================================================
         ;   CryptStringToBinaryW function (dpapi.h)
         ;     https://learn.microsoft.com/en-us/windows/win32/api/wincrypt/nf-wincrypt-cryptstringtobinaryw
@@ -216,6 +225,8 @@ class ProtectString
             dataDescrText := strGet(ppszDataDescr, "UTF-16")
             dllCall("Kernel32.dll\LocalFree", "Ptr",ppszDataDescr + 0, "Ptr")
         }
+        if (isSet(ok))
+            ok := true
         return plainText
     }
     ;----------------------------------------------------------
